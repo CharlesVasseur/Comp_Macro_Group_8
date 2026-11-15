@@ -6,9 +6,9 @@ A simple two-household-type model: Ricardian households and hand-to-mouth househ
 Compare government-spending impulse responses when the share of hand-to-mouth households is low versus high. Focus on aggregate consumption and output.
 
 ### Our Parameters
-- $\beta         = 0.96$
-- $\delta        = 0.08$
-- $\alpha        = 1/3$
+- $\beta         = 0.96$ *based on Galí, López-Salido & Vallés (2004)*
+- $\delta        = 0.1$ *based on Prescott (1986), and Galí, López-Salido & Vallés (2004)*
+- $\alpha        = 1/3$ 
 - $v             = 0$
 - $\chi          = 10.3$
 - $\eta          = 1$

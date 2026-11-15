@@ -54,7 +54,7 @@ T_bar // steady state taxes
 
 // Calibration (placeholders where marked)
 beta    = 0.96;
-delta   = 0.08;
+delta   = 0.1;
 alpha   = 1/3;
 v       = 0;       // start at 0 to test the plain RBC case
 chi     = 10.3;    // placeholder: will be chosen to hit a target for hours
