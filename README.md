@@ -14,7 +14,7 @@ Compare government-spending impulse responses when the share of hand-to-mouth ho
 - Elasticity of Labor to Consumption:              $\eta          = 1$ *based on Galí, López-Salido & Vallés (2004)*
 - Steady State Government Spending:                $\bar{G}       = 0.11$ *based on Leeper, Traum & Walker (2017)*
 - Steady State Bonds                               $\bar{B}       = 0$ *based on Galí, López-Salido & Vallés (2004)*
-- Quickness to adjust Taxes to Debt:               $\phi_T        = 0.5$ ==*based on Galí, López-Salido & Vallés (2004)*==
+- Quickness to adjust Taxes to Debt:               $\phi_T        = 0.5$
 - Persistence of TFP Shock:                        $\rho_A        = 0.95$ *based on Dong, Liu & Wang (2023)*
 - Persistence of Government Spending Shock:        $\rho_G        = 0.66$ *based on Galí, López-Salido & Vallés (2004)*
 - Standard Deviation of TFP Shock:                 $\sigma_A      = 0.01$ *based on Dong, Liu & Wang (2023)*
