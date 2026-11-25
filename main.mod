@@ -183,9 +183,18 @@ stoch_simul(order=1, irf=40, nograph)
 irf_high = oo_.irfs;
 
 // Multipliers
-// Impact multipliers: extra Y per extra unit of G
+// Impact multipliers: extra Y per extra unit of G 
 mult_low  = irf_low.Y_eps_G(1)  / irf_low.G_eps_G(1)
 mult_high = irf_high.Y_eps_G(1) / irf_high.G_eps_G(1)
+
+// Cumulative multipliers: discounted sum of extra Y over discounted sum of extra G over 40 years
+disc = 0.96.^(0:39); // assumes beta = 0.96 
+cum_low  = sum(disc .* irf_low.Y_eps_G)  / sum(disc .* irf_low.G_eps_G)
+cum_high = sum(disc .* irf_high.Y_eps_G) / sum(disc .* irf_high.G_eps_G)
+
+// Tax multipliers (impact): change in Y per unit of tax cut
+taxmult_low  = irf_low.Y_eps_tau(1)  / -irf_low.T_eps_tau(1)
+taxmult_high = irf_high.Y_eps_tau(1) / -irf_high.T_eps_tau(1)
 
 // Figures 
 // Spending shock: Y and C, low vs high v
