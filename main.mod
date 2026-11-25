@@ -44,22 +44,22 @@ B_bar // steady state bonds
 T_bar // steady state taxes
 ;
 
-beta    = 0.96; // based on Dong, Liu & Wang (2023), Galí, López-Salido & Vallés (2004), and Class Slides 
-delta   = 0.1; // based on Dong, Liu & Wang (2023), and Galí, López-Salido & Vallés (2004)
-alpha   = 1/3; // based on Galí, López-Salido & Vallés (2004) 
-v       = 0; // no HTM households (Ricardian/RBC benchmark). Scenario values set in the experiment block below.
-chi     = 10.625;   // calibrated: N = 1/3 and G/Y = 0.2 at v = 0 (values from class slides and match historial US data)
-G_bar = 0.1023; // calibrated so that G/Y = 0.2 at v = 0 (values from class slides and match historial US data)
-eta     = 1;
-B_bar   = 0; 
-T_bar   = G_bar + (1-beta)*B_bar;     // placeholder: debt target comes later
-phi_T   = 0.8;    // placeholder: must satisfy 1-q < phi < 1+q
-phi_G   = 0.1;   
-rho_A   = 0.9;
-rho_G   = 0.66;   // Gali Paper - Table 1 quarterly rate of 0.9
-sigma_A = 0.01;
-sigma_G = 0.01;
-sigma_tau = 0.003; 
+beta    = 0.96; // Time dicount factor
+delta   = 0.1; // Depreciation rate
+alpha   = 1/3; // Share of GDP from capital
+v       = 0; // Share of HTM households
+chi     = 10.625;   // Disutility of labor
+G_bar = 0.1023; // Steady state government spending
+eta     = 1; // Elasticity of labor disutility
+B_bar   = 0; // Steady state bonds
+T_bar   = G_bar + (1-beta)*B_bar; // Steady state taxes
+phi_T   = 0.8; // Quickness to adjust taxes to debt
+phi_G   = 0.1; // Share of additional spending that is financed through taxes
+rho_A   = 0.9; // Persistence of TFP shock
+rho_G   = 0.66; // Persisistence of government spending shock
+sigma_A = 0.01; // Standard deviation of TFP shock
+sigma_G = 0.01; // Standard deviation of government spending shock
+sigma_tau = 0.003; // Standard deviation of Tax shock
 
 model; 
 //Model Equations
