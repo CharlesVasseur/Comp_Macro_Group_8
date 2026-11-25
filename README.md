@@ -5,6 +5,11 @@ A simple two-household-type model: Ricardian households and hand-to-mouth househ
 
 Compare government-spending impulse responses when the share of hand-to-mouth households is low versus high. Focus on aggregate consumption and output.
 
+### Running the model
+- **Software used for verification:** GNU Octave 11.3.0 and Dynare 7.2. These versions are not pinned in the model files.
+- **File to run:** `main.mod`. From the repository root in Octave, run `dynare main.mod`.
+- **Results:** computes the steady state and a first-order stochastic simulation, including 40-period impulse responses for consumption (aggregate and by household type), output, investment, capital, labor, wages, taxes, bonds, and government spending.
+
 ### Our Parameters
 - Discount Rate:                                   $\beta         = 0.96$ *based on Dong, Liu & Wang (2023), and Galí, López-Salido & Vallés (2004)*
 - Depreciation of Capital:                         $\delta        = 0.1$ *based on Dong, Liu & Wang (2023), and Galí, López-Salido & Vallés (2004)*
