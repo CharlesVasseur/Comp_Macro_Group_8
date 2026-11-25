@@ -22,7 +22,7 @@ q // price of bonds
 varexo 
 eps_A // Shock to TFP
 eps_G // Shock to government spending 
-eps_tau // Shock Tax (through bonds)
+eps_tau // Tax cut shock (debt-financed)
 ;
 
 parameters
@@ -44,22 +44,22 @@ B_bar // steady state bonds
 T_bar // steady state taxes
 ;
 
-beta    = 0.96;
-delta   = 0.08;
-alpha   = 1/3;
-v       = 0;      // start at 0 to test the plain RBC case
-chi     = 10.33;   // placeholder: will be chosen to hit a target for hours
+beta    = 0.96; // based on Dong, Liu & Wang (2023), Galí, López-Salido & Vallés (2004), and Class Slides 
+delta   = 0.1; // based on Dong, Liu & Wang (2023), and Galí, López-Salido & Vallés (2004)
+alpha   = 1/3; // based on Galí, López-Salido & Vallés (2004) 
+v       = 0; // no HTM households (Ricardian/RBC benchmark). Scenario values set in the experiment block below.
+chi     = 10.625;   // calibrated: N = 1/3 and G/Y = 0.2 at v = 0 (values from class slides and match historial US data)
+G_bar = 0.1023; // calibrated so that G/Y = 0.2 at v = 0 (values from class slides and match historial US data)
 eta     = 1;
-G_bar   = 0.11;    // placeholder: will be tied to G/Y later
 B_bar   = 0; 
 T_bar   = G_bar + (1-beta)*B_bar;     // placeholder: debt target comes later
-phi_T   = 0.5;    // placeholder: must satisfy 1-q < phi < 1+q
-phi_G   = 0.1;    // placeholder: must satisfy 1-q < phi < 1+q
+phi_T   = 0.8;    // placeholder: must satisfy 1-q < phi < 1+q
+phi_G   = 0.1;   
 rho_A   = 0.9;
-rho_G   = 0.81;   // Gali Paper - Table 1 quarterly rate of 0.95
+rho_G   = 0.66;   // Gali Paper - Table 1 quarterly rate of 0.9
 sigma_A = 0.01;
 sigma_G = 0.01;
-sigma_tau = 0.001;
+sigma_tau = 0.003; 
 
 model; 
 //Model Equations
@@ -115,7 +115,7 @@ log(A) = rho_A*log(A(-1)) + eps_A;
 
 log(G/G_bar) = rho_G*log(G(-1)/G_bar) + eps_G;
 
-T = T_bar + phi_T*(B(-1)-B_bar) + phi_G*(G-G_bar) + eps_tau;
+T = T_bar + phi_T*(B(-1)-B_bar) + phi_G*(G-G_bar) - eps_tau;
 // Government Block 
 
 //Government BC
@@ -124,10 +124,40 @@ G + B(-1) = T + q*B;
 end;
 
 steady_state_model;
-  [C_H,C_R,C,Y,I,N_H,N_R,N,K,G,T,Profits,Lambda_H,Lambda_R,B,W,A,q] = get_ss_groupwork_8(beta,delta,alpha,v,chi,eta,G_bar,B_bar,T_bar);
+
+A = 1;
+G = G_bar;
+B = B_bar;
+q = beta;
+T = T_bar;
+
+// capital per worker from the capital Euler equation
+  k_hourly  = (alpha/(1/beta - 1 + delta))^(1/(1-alpha)); // capital per hour worked
+  y_hourly = k_hourly^alpha; // output per hour worked
+  W     = (1-alpha)*y_hourly; 
+  net_product = y_hourly - delta*k_hourly; // net output per hour worked
+  prof_hourly  = alpha*y_hourly - delta*k_hourly; // profit per hour worked
+
+  // labor: quadratic root (hold only for eta = 1)
+  N_H = (chi*T + sqrt((chi*T)^2 + 4*chi*W^2)) / (2*chi*W); // Take positive root as hours must be positive 
+  c0  = prof_hourly*v*N_H/(1-v) + (1-q)*B/(1-v) - T; // 
+  N_R = (-chi*c0 + sqrt((chi*c0)^2 + 4*chi*net_product*W)) / (2*chi*net_product); // Take positive root as hours must be positive
+
+  N  = v*N_H + (1-v)*N_R;
+  K  = k_hourly*N;
+  Y  = A*K^alpha*N^(1-alpha);
+  I  = delta*K;
+  Profits = Y - W*N - I;
+  C_H = W*N_H - T;
+  C_R = W*N_R + Profits/(1-v) + (1-q)*B/(1-v) - T;
+  C   = v*C_H + (1-v)*C_R;
+  Lambda_H = 1/C_H;
+  Lambda_R = 1/C_R;
+
 end;
 
 steady; 
+resid; 
 check; 
 
 shocks; 
@@ -136,4 +166,38 @@ shocks;
   var eps_tau; stderr sigma_tau;
 end;
 
-stoch_simul(order=1,irf=40) C C_H C_R Y I K N N_R N_H W T B G;
+// low HTM share: Data from US 1983-2004 Source: (Bilbiie, Meier, and Müller, 2006). 
+v = 0.35;
+steady; 
+check; 
+stoch_simul(order=1, irf=40, nograph)
+    C C_H C_R Y K N_R N_H W T B G;
+irf_low = oo_.irfs;
+
+// High HTM share: Data from US 1957-1979 Source: (Bilbiie, Meier, and Müller, 2006).
+v = 0.51;
+steady;
+check;
+stoch_simul(order=1, irf=40, nograph)
+    C C_H C_R Y K N_R N_H W T B G;
+irf_high = oo_.irfs;
+
+// Multipliers
+// Impact multipliers: extra Y per extra unit of G
+mult_low  = irf_low.Y_eps_G(1)  / irf_low.G_eps_G(1)
+mult_high = irf_high.Y_eps_G(1) / irf_high.G_eps_G(1)
+
+// Figures 
+// Spending shock: Y and C, low vs high v
+figure;
+subplot(1,2,1); plot(irf_low.Y_eps_G); hold on; plot(irf_high.Y_eps_G, '--'); title('Y');
+legend('v = 0.35', 'v = 0.51');
+subplot(1,2,2); plot(irf_low.C_eps_G); hold on; plot(irf_high.C_eps_G, '--'); title('C');
+saveas(gcf, 'figures/irf_Gov_spending_shock.png');
+
+// Tax cut shock: Y and C, low vs high v
+figure;
+subplot(1,2,1); plot(irf_low.Y_eps_tau); hold on; plot(irf_high.Y_eps_tau, '--'); title('Y');
+legend('v = 0.35', 'v = 0.51');
+subplot(1,2,2); plot(irf_low.C_eps_tau); hold on; plot(irf_high.C_eps_tau, '--'); title('C');
+saveas(gcf, 'figures/irf_tax_cut.png');
