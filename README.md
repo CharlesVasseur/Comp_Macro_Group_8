@@ -15,14 +15,14 @@ Compare government-spending impulse responses when the share of hand-to-mouth ho
 - Depreciation of Capital:                         $\delta        = 0.1$ *based on Dong, Liu & Wang (2023), and Galí, López-Salido & Vallés (2004)*
 - Share of GDP from Capital:                       $\alpha        = 1/3$ *based on Galí, López-Salido & Vallés (2004)*
 - Share of hand-to-mouth Households:               $v             = 0$
-- Disutility of Labor:                             $\chi          = 10.3$
-- Elasticity of Labor to Consumption:              $\eta          = 1$ *based on Galí, López-Salido & Vallés (2004)*
+- Disutility of Labor:                             $\chi          = 10.3$ *calibrated so that N = ⅓*
+- Elasticity of Labor to Consumption:              $\eta          = 1$ *from class (Sessions 5 & 6)*
 - Steady State Government Spending:                $\bar{G}       = 0.11$ *based on Leeper, Traum & Walker (2017)*
 - Steady State Bonds                               $\bar{B}       = 0$ *based on Galí, López-Salido & Vallés (2004)*
 - Quickness to adjust Taxes to Debt:               $\phi_T        = 0.5$
-- Persistence of TFP Shock:                        $\rho_A        = 0.95$ *based on Dong, Liu & Wang (2023)*
+- Persistence of TFP Shock:                        $\rho_A        = 0.9$ *from class (Sessions 5 & 6)*
 - Persistence of Government Spending Shock:        $\rho_G        = 0.66$ *based on Galí, López-Salido & Vallés (2004)*
-- Standard Deviation of TFP Shock:                 $\sigma_A      = 0.01$ *based on Dong, Liu & Wang (2023)*
+- Standard Deviation of TFP Shock:                 $\sigma_A      = 0.01$ *from class (Sessions 5 & 6)*
 - Standard Deviation of Government Spending Shock: $\sigma_G      = 0.01$ *based on Galí, López-Salido & Vallés (2004)*
 - Standard Deviation of Tax Shock:                 $\sigma_{\tau} = 0.01$ *based on Leeper, Plante & Traum (2009)*
 
