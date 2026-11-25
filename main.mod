@@ -47,13 +47,13 @@ T_bar // steady state taxes
 beta    = 0.96; // based on Dong, Liu & Wang (2023), Galí, López-Salido & Vallés (2004), and Class Slides 
 delta   = 0.1; // based on Dong, Liu & Wang (2023), and Galí, López-Salido & Vallés (2004)
 alpha   = 1/3; // based on Galí, López-Salido & Vallés (2004) 
-v       = 0; // no HTM households (Ricardian/RBC benchmark). Scenario values set in the experiment block below.
+v       = 0; // no HTM households (Ricardian/RBC benchmark). Scenario values are set in the experiment block
 chi     = 10.625;   // calibrated: N = 1/3 and G/Y = 0.2 at v = 0 (values from class slides and match historial US data)
 G_bar = 0.1023; // calibrated so that G/Y = 0.2 at v = 0 (values from class slides and match historial US data)
 eta     = 1;
 B_bar   = 0; 
-T_bar   = G_bar + (1-beta)*B_bar;     // placeholder: debt target comes later
-phi_T   = 0.8;    // placeholder: must satisfy 1-q < phi < 1+q
+T_bar   = G_bar + (1-beta)*B_bar;   
+phi_T   = 0.8;    // must satisfy 1-q < phi < 1+q
 phi_G   = 0.1;   
 rho_A   = 0.9;
 rho_G   = 0.66;   // Gali Paper - Table 1 quarterly rate of 0.9
@@ -115,7 +115,7 @@ log(A) = rho_A*log(A(-1)) + eps_A;
 
 log(G/G_bar) = rho_G*log(G(-1)/G_bar) + eps_G;
 
-T = T_bar + phi_T*(B(-1)-B_bar) + phi_G*(G-G_bar) - eps_tau;
+T = T_bar + phi_T*(B(-1)-B_bar) + phi_G*(G-G_bar) - eps_tau; // Fiscal Rule configured from Gali, Lopez-Salido & Valles (2007) 
 // Government Block 
 
 //Government BC
@@ -124,13 +124,13 @@ G + B(-1) = T + q*B;
 end;
 
 steady_state_model;
-
 A = 1;
 G = G_bar;
 B = B_bar;
 q = beta;
 T = T_bar;
 
+// Used AI to check the steady state formulas and guide with finding c0. 
 // capital per worker from the capital Euler equation
   k_hourly  = (alpha/(1/beta - 1 + delta))^(1/(1-alpha)); // capital per hour worked
   y_hourly = k_hourly^alpha; // output per hour worked
@@ -156,8 +156,13 @@ T = T_bar;
 
 end;
 
+// Calculates the steady state values 
 steady; 
+
+// Produces residuals for each equation, which should be close to zero if the model is correctly specified and the steady state is computed correctly.
 resid; 
+
+// Checks the Blanchard-Kahn conditions for the existence and uniqueness of a stable solution to the model. 
 check; 
 
 shocks; 
@@ -166,6 +171,7 @@ shocks;
   var eps_tau; stderr sigma_tau;
 end;
 
+// Used AI to create scenario analysis for different values of v (share of HTM households) and to compute the corresponding impulse response functions (IRFs) and multipliers.
 // low HTM share: Data from US 1983-2004 Source: (Bilbiie, Meier, and Müller, 2006). 
 v = 0.35;
 steady; 
@@ -182,6 +188,7 @@ stoch_simul(order=1, irf=40, nograph)
     C C_H C_R Y K N_R N_H W T B G;
 irf_high = oo_.irfs;
 
+// Used AI to compute the multipliers for both scenarios (low and high HTM share). 
 // Multipliers
 // Impact multipliers: extra Y per extra unit of G 
 mult_low  = irf_low.Y_eps_G(1)  / irf_low.G_eps_G(1)
@@ -196,6 +203,7 @@ cum_high = sum(disc .* irf_high.Y_eps_G) / sum(disc .* irf_high.G_eps_G)
 taxmult_low  = irf_low.Y_eps_tau(1)  / -irf_low.T_eps_tau(1)
 taxmult_high = irf_high.Y_eps_tau(1) / -irf_high.T_eps_tau(1)
 
+// Used AI to write the plotting code (comparison figures and one figure per variable).
 // Figures 
 // Spending shock: Y and C, low vs high v
 figure;
@@ -210,3 +218,8 @@ subplot(1,2,1); plot(irf_low.Y_eps_tau); hold on; plot(irf_high.Y_eps_tau, '--')
 legend('v = 0.35', 'v = 0.51');
 subplot(1,2,2); plot(irf_low.C_eps_tau); hold on; plot(irf_high.C_eps_tau, '--'); title('C');
 saveas(gcf, 'figures/irf_tax_cut.png');
+
+// One figure per variable, both scenarios overlaid
+vars = {'C','C_H','C_R','Y','K','N_R','N_H','W','T','B','G'};
+for i = 1:numel(vars); figure; plot(irf_low.([vars{i} '_eps_G'])); hold on; plot(irf_high.([vars{i} '_eps_G']), '--'); title(vars{i}); legend('v = 0.35', 'v = 0.51'); saveas(gcf, ['figures/irf_' vars{i} '_spending.png']); close; end
+for i = 1:numel(vars); figure; plot(irf_low.([vars{i} '_eps_tau'])); hold on; plot(irf_high.([vars{i} '_eps_tau']), '--'); title(vars{i}); legend('v = 0.35', 'v = 0.51'); saveas(gcf, ['figures/irf_' vars{i} '_taxcut.png']); close; end
