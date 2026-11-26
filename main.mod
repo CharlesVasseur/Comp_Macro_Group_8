@@ -48,8 +48,8 @@ beta    = 0.96; // based on Dong, Liu & Wang (2023), Galí, López-Salido & Vall
 delta   = 0.1; // based on Dong, Liu & Wang (2023), and Galí, López-Salido & Vallés (2004)
 alpha   = 1/3; // based on Galí, López-Salido & Vallés (2004) 
 v       = 0; // no HTM households (Ricardian/RBC benchmark). Scenario values are set in the experiment block
-chi     = 10.625;   // calibrated: N = 1/3 and G/Y = 0.2 at v = 0 (values from class slides and match historial US data)
-G_bar = 0.1023; // calibrated so that G/Y = 0.2 at v = 0 (values from class slides and match historial US data)
+chi     = 10.625;   // calibrated: N = 1/3 and G/Y = 0.2 at v = 0 (method from class slides and match historial US data)
+G_bar = 0.1023; // calibrated so that G/Y = 0.2 at v = 0 (method from class slides and match historial US data)
 eta     = 1;
 B_bar   = 0; 
 T_bar   = G_bar + (1-beta)*B_bar;   
@@ -130,7 +130,7 @@ B = B_bar;
 q = beta;
 T = T_bar;
 
-// Used AI to check the steady state formulas and guide with finding c0. 
+// Guided by Slides 5 & 6, and checked using AI.  
 // capital per worker from the capital Euler equation
   k_hourly  = (alpha/(1/beta - 1 + delta))^(1/(1-alpha)); // capital per hour worked
   y_hourly = k_hourly^alpha; // output per hour worked
@@ -156,7 +156,7 @@ T = T_bar;
 
 end;
 
-// Calculates the steady state values 
+// Calculates the steady state values. 
 steady; 
 
 // Produces residuals for each equation, which should be close to zero if the model is correctly specified and the steady state is computed correctly.
@@ -164,6 +164,9 @@ resid;
 
 // Checks the Blanchard-Kahn conditions for the existence and uniqueness of a stable solution to the model. 
 check; 
+
+// Checks for missing or redundant equations. 
+model diagnostics; 
 
 shocks; 
   var eps_A; stderr sigma_A;
