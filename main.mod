@@ -26,7 +26,7 @@ eps_tau // Tax cut shock (debt-financed)
 ;
 
 parameters
-beta // time discount
+beta // time discount factor
 delta // depreciation rate
 alpha // capital share in production
 v // share of HTM households
@@ -44,22 +44,22 @@ B_bar // steady state bonds
 T_bar // steady state taxes
 ;
 
-beta    = 0.96; // Time dicount factor
-delta   = 0.1; // Depreciation rate
-alpha   = 1/3; // Share of GDP from capital
-v       = 0; // Share of HTM households
-chi     = 10.625;   // Disutility of labor
-G_bar = 0.1023; // Steady state government spending
-eta     = 1; // Elasticity of labor disutility
-B_bar   = 0; // Steady state bonds
-T_bar   = G_bar + (1-beta)*B_bar; // Steady state taxes
-phi_T   = 0.8; // Quickness to adjust taxes to debt
-phi_G   = 0.1; // Share of additional spending that is financed through taxes
-rho_A   = 0.9; // Persistence of TFP shock
-rho_G   = 0.66; // Persisistence of government spending shock
-sigma_A = 0.01; // Standard deviation of TFP shock
-sigma_G = 0.01; // Standard deviation of government spending shock
-sigma_tau = 0.003; // Standard deviation of Tax shock
+beta    = 0.96; 
+delta   = 0.1; 
+alpha   = 1/3; 
+v       = 0; 
+chi     = 10.625;  
+G_bar   = 0.1023; 
+eta     = 1;
+B_bar   = 0; 
+T_bar   = G_bar + (1-beta)*B_bar;   
+phi_T   = 0.8;    // must satisfy 1-q < phi < 1+q
+phi_G   = 0.1;   
+rho_A   = 0.9;
+rho_G   = 0.66;   
+sigma_A = 0.01;
+sigma_G = 0.01;
+sigma_tau = 0.003; 
 
 model; 
 //Model Equations
@@ -115,7 +115,7 @@ log(A) = rho_A*log(A(-1)) + eps_A;
 
 log(G/G_bar) = rho_G*log(G(-1)/G_bar) + eps_G;
 
-T = T_bar + phi_T*(B(-1)-B_bar) + phi_G*(G-G_bar) - eps_tau;
+T = T_bar + phi_T*(B(-1)-B_bar) + phi_G*(G-G_bar) - eps_tau; // Fiscal Rule configured from Gali, Lopez-Salido & Valles (2007) 
 // Government Block 
 
 //Government BC
@@ -124,13 +124,13 @@ G + B(-1) = T + q*B;
 end;
 
 steady_state_model;
-
 A = 1;
 G = G_bar;
 B = B_bar;
 q = beta;
 T = T_bar;
 
+// Guided by Slides 5 & 6, and checked using AI.  
 // capital per worker from the capital Euler equation
   k_hourly  = (alpha/(1/beta - 1 + delta))^(1/(1-alpha)); // capital per hour worked
   y_hourly = k_hourly^alpha; // output per hour worked
@@ -156,9 +156,17 @@ T = T_bar;
 
 end;
 
+// Calculates the steady state values. 
 steady; 
+
+// Produces residuals for each equation, which should be close to zero if the model is correctly specified and the steady state is computed correctly.
 resid; 
+
+// Checks the Blanchard-Kahn conditions for the existence and uniqueness of a stable solution to the model. 
 check; 
+
+// Checks for missing or redundant equations. 
+model_diagnostics; 
 
 shocks; 
   var eps_A; stderr sigma_A;
@@ -166,6 +174,7 @@ shocks;
   var eps_tau; stderr sigma_tau;
 end;
 
+// Used AI to create scenario analysis for different values of v (share of HTM households) and to compute the corresponding impulse response functions (IRFs) and multipliers.
 // low HTM share: Data from US 1983-2004 Source: (Bilbiie, Meier, and Müller, 2006). 
 v = 0.35;
 steady; 
@@ -182,11 +191,22 @@ stoch_simul(order=1, irf=40, nograph)
     C C_H C_R Y K N_R N_H W T B G;
 irf_high = oo_.irfs;
 
+// Used AI to compute the multipliers for both scenarios (low and high HTM share). 
 // Multipliers
-// Impact multipliers: extra Y per extra unit of G
+// Impact multipliers: extra Y per extra unit of G 
 mult_low  = irf_low.Y_eps_G(1)  / irf_low.G_eps_G(1)
 mult_high = irf_high.Y_eps_G(1) / irf_high.G_eps_G(1)
 
+// Cumulative multipliers: discounted sum of extra Y over discounted sum of extra G over 40 years
+disc = 0.96.^(0:39); // assumes beta = 0.96 
+cum_low  = sum(disc .* irf_low.Y_eps_G)  / sum(disc .* irf_low.G_eps_G)
+cum_high = sum(disc .* irf_high.Y_eps_G) / sum(disc .* irf_high.G_eps_G)
+
+// Tax multipliers (impact): change in Y per unit of tax cut
+taxmult_low  = irf_low.Y_eps_tau(1)  / -irf_low.T_eps_tau(1)
+taxmult_high = irf_high.Y_eps_tau(1) / -irf_high.T_eps_tau(1)
+
+// Used AI to write the plotting code (comparison figures and one figure per variable).
 // Figures 
 // Spending shock: Y and C, low vs high v
 figure;
@@ -201,3 +221,33 @@ subplot(1,2,1); plot(irf_low.Y_eps_tau); hold on; plot(irf_high.Y_eps_tau, '--')
 legend('v = 0.35', 'v = 0.51');
 subplot(1,2,2); plot(irf_low.C_eps_tau); hold on; plot(irf_high.C_eps_tau, '--'); title('C');
 saveas(gcf, 'figures/irf_tax_cut.png');
+
+// One figure per variable, both scenarios overlaid
+vars = {'C','C_H','C_R','Y','K','N_R','N_H','W','T','B','G'};
+for i = 1:numel(vars); figure; plot(irf_low.([vars{i} '_eps_G'])); hold on; plot(irf_high.([vars{i} '_eps_G']), '--'); title(vars{i}); legend('v = 0.35', 'v = 0.51'); saveas(gcf, ['figures/irf_' vars{i} '_spending.png']); close; end
+for i = 1:numel(vars); figure; plot(irf_low.([vars{i} '_eps_tau'])); hold on; plot(irf_high.([vars{i} '_eps_tau']), '--'); title(vars{i}); legend('v = 0.35', 'v = 0.51'); saveas(gcf, ['figures/irf_' vars{i} '_taxcut.png']); close; end
+
+// Used AI to write the robustness check code 
+// Robustness check: greater tax financing of government spending
+// Baseline phi_G = 0.1 (10% of extra spending tax-financed on impact). Tests whether conclusions hold when phi_G = 1 (all extra spending is tax-financed immediately)
+phi_G = 1;
+
+v = 0.35;
+steady;
+stoch_simul(order=1, irf=40, nograph)
+    C C_H C_R Y K N_R N_H W T B G;
+irf_low_tax = oo_.irfs;
+
+v = 0.51;
+steady;
+stoch_simul(order=1, irf=40, nograph)
+    C C_H C_R Y K N_R N_H W T B G;
+irf_high_tax = oo_.irfs;
+
+phi_G = 0.1;  // restore baseline
+
+// Spending multipliers under tax financing
+mult_low_tax  = irf_low_tax.Y_eps_G(1)  / irf_low_tax.G_eps_G(1)
+mult_high_tax = irf_high_tax.Y_eps_G(1) / irf_high_tax.G_eps_G(1)
+cum_low_tax   = sum(disc .* irf_low_tax.Y_eps_G)  / sum(disc .* irf_low_tax.G_eps_G)
+cum_high_tax  = sum(disc .* irf_high_tax.Y_eps_G) / sum(disc .* irf_high_tax.G_eps_G)
