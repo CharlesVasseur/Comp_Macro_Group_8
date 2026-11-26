@@ -26,7 +26,7 @@ eps_tau // Tax cut shock (debt-financed)
 ;
 
 parameters
-beta // time discount
+beta // time discount factor
 delta // depreciation rate
 alpha // capital share in production
 v // share of HTM households
@@ -44,19 +44,19 @@ B_bar // steady state bonds
 T_bar // steady state taxes
 ;
 
-beta    = 0.96; // based on Dong, Liu & Wang (2023), Galí, López-Salido & Vallés (2004), and Class Slides 
-delta   = 0.1; // based on Dong, Liu & Wang (2023), and Galí, López-Salido & Vallés (2004)
-alpha   = 1/3; // based on Galí, López-Salido & Vallés (2004) 
-v       = 0; // no HTM households (Ricardian/RBC benchmark). Scenario values are set in the experiment block
-chi     = 10.625;   // calibrated: N = 1/3 and G/Y = 0.2 at v = 0 (method from class slides and match historial US data)
-G_bar = 0.1023; // calibrated so that G/Y = 0.2 at v = 0 (method from class slides and match historial US data)
+beta    = 0.96; 
+delta   = 0.1; 
+alpha   = 1/3; 
+v       = 0; 
+chi     = 10.625;  
+G_bar   = 0.1023; 
 eta     = 1;
 B_bar   = 0; 
 T_bar   = G_bar + (1-beta)*B_bar;   
 phi_T   = 0.8;    // must satisfy 1-q < phi < 1+q
 phi_G   = 0.1;   
 rho_A   = 0.9;
-rho_G   = 0.66;   // Gali Paper - Table 1 quarterly rate of 0.9
+rho_G   = 0.66;   
 sigma_A = 0.01;
 sigma_G = 0.01;
 sigma_tau = 0.003; 
@@ -166,7 +166,7 @@ resid;
 check; 
 
 // Checks for missing or redundant equations. 
-model diagnostics; 
+model_diagnostics; 
 
 shocks; 
   var eps_A; stderr sigma_A;
@@ -226,3 +226,28 @@ saveas(gcf, 'figures/irf_tax_cut.png');
 vars = {'C','C_H','C_R','Y','K','N_R','N_H','W','T','B','G'};
 for i = 1:numel(vars); figure; plot(irf_low.([vars{i} '_eps_G'])); hold on; plot(irf_high.([vars{i} '_eps_G']), '--'); title(vars{i}); legend('v = 0.35', 'v = 0.51'); saveas(gcf, ['figures/irf_' vars{i} '_spending.png']); close; end
 for i = 1:numel(vars); figure; plot(irf_low.([vars{i} '_eps_tau'])); hold on; plot(irf_high.([vars{i} '_eps_tau']), '--'); title(vars{i}); legend('v = 0.35', 'v = 0.51'); saveas(gcf, ['figures/irf_' vars{i} '_taxcut.png']); close; end
+
+// Used AI to write the robustness check code 
+// Robustness check: greater tax financing of government spending
+// Baseline phi_G = 0.1 (10% of extra spending tax-financed on impact). Tests whether conclusions hold when phi_G = 1 (all extra spending is tax-financed immediately)
+phi_G = 1;
+
+v = 0.35;
+steady;
+stoch_simul(order=1, irf=40, nograph)
+    C C_H C_R Y K N_R N_H W T B G;
+irf_low_tax = oo_.irfs;
+
+v = 0.51;
+steady;
+stoch_simul(order=1, irf=40, nograph)
+    C C_H C_R Y K N_R N_H W T B G;
+irf_high_tax = oo_.irfs;
+
+phi_G = 0.1;  // restore baseline
+
+// Spending multipliers under tax financing
+mult_low_tax  = irf_low_tax.Y_eps_G(1)  / irf_low_tax.G_eps_G(1)
+mult_high_tax = irf_high_tax.Y_eps_G(1) / irf_high_tax.G_eps_G(1)
+cum_low_tax   = sum(disc .* irf_low_tax.Y_eps_G)  / sum(disc .* irf_low_tax.G_eps_G)
+cum_high_tax  = sum(disc .* irf_high_tax.Y_eps_G) / sum(disc .* irf_high_tax.G_eps_G)
